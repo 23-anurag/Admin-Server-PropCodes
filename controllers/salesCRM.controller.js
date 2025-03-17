@@ -94,7 +94,6 @@ export const REGISTER_CRM_USER = async (req, res) => {
 
 export const GET_ALL_CRM_USERS = async (req, res) => {
   const { page, limit } = req.query;
-  console.log(page, limit);
 
   try {
     // Fetch the employees from the database

@@ -29,8 +29,7 @@ export const REGISTER_CRM_USER = async (req, res) => {
     const { bankAccountHolderName, bankAccountNumber, bankIFSCCode, bankName } =
       req.body.bankFormData;
 
-      console.log(bankAccountNumber);
-      
+    console.log(bankAccountNumber);
 
     // Register the Employee model if it's not already registered
     let EMPLOYEE;
@@ -94,11 +93,23 @@ export const REGISTER_CRM_USER = async (req, res) => {
 };
 
 export const GET_ALL_CRM_USERS = async (req, res) => {
+  const { page, limit } = req.query;
+  console.log(page, limit);
+
   try {
     // Fetch the employees from the database
-    const allEmployees = await ALL_EMPLOYEES.find().toArray();
+    const allEmployees = await ALL_EMPLOYEES.find()
+      .skip((page - 1) * limit)
+      .limit(Number(limit))
+      .toArray();
 
-    return res.status(200).json({ success: true, allEmployees });
+    const totalEmployees = await ALL_EMPLOYEES.countDocuments();
+
+    return res.status(200).json({
+      success: true,
+      allEmployees,
+      totalPages: Math.ceil(totalEmployees / limit),
+    });
   } catch (error) {
     console.log("Error while fetching all CRM Employees");
     return res

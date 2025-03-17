@@ -30,17 +30,36 @@ export const UPDATE_CLIENT = async (req, res) => {
 };
 
 export const GET_ALL_CLIENTS = async (req, res) => {
-  
+  const { page, limit } = req.query;
+
   try {
     // Ensure the Client Database connection is established before querying
     if (!clientDB.readyState) {
       return res.status(500).json({ message: "Client Database Not Connected" });
     }
 
-    const userData = await clientDB.useDb(process.env.CLIENT_DB_NAME).collection("users").find().toArray();
-    res.status(200).json({success:true, clients:userData});
+    const userData = await clientDB
+      .useDb(process.env.CLIENT_DB_NAME)
+      .collection("users")
+      .find()
+      .skip((page - 1) * limit)
+      .limit(Number(limit))
+      .toArray();
+
+    const totalClients = await clientDB
+      .useDb(process.env.CLIENT_DB_NAME)
+      .collection("users")
+      .countDocuments();
+
+    return res.status(200).json({
+      success: true,
+      clients: userData,
+      totalPages: Math.ceil(totalClients / limit),
+    });
   } catch (error) {
     console.error("Error fetching collections:", error);
-    res.status(500).json({ message: "Error retrieving client collections" });
+    return res
+      .status(500)
+      .json({ message: "Error retrieving client collections" });
   }
 };
